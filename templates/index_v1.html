@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gems Slot</title>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #1a1a2e, #0f0f1e);
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .slot-frame {
+            border: 4px solid gold;
+            padding: 10px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <div class="window-border">
+        <div class="window">
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+        </div>
+    </div>
+
+    <input type="button" onclick="spin(this)" class="start-button" value="Spin"/>
+</div>
+
+<div class="absolute top-0 w-full text-center py-5 bg-yellow-500 shadow-lg z-10">
+    <h1 class="text-5xl font-extrabold text-purple-800">Gems Slot</h1>
+</div>
+
+<canvas id="renderCanvas"></canvas>
+
+<!-- Character on the right -->
+<div class="absolute right-5 bottom-10 z-10">
+    <img src="https://via.placeholder.com/150" alt="Owl Character" class="h-48 w-48" />
+</div>
+
+<!-- Controls -->
+<div class="absolute bottom-0 w-full flex flex-col items-center justify-center space-y-5 pb-10 z-10">
+    <button id="spinButton" class="px-6 py-3 bg-green-600 text-white text-2xl font-bold rounded-lg hover:bg-green-700 transition-all shadow-lg">
+        SPIN
+    </button>
+    <div id="resultText" class="text-white text-3xl font-extrabold"></div>
+</div>
+
+<script>
+    const canvas = document.getElementById("renderCanvas");
+    const engine = new BABYLON.Engine(canvas, true);
+
+    const createScene = () => {
+        const scene = new BABYLON.Scene(engine);
+
+        // Camera and Lights
+        const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 2, Math.PI / 3, 20, BABYLON.Vector3.Zero(), scene);
+        camera.attachControl(canvas, true);
+
+        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+        light.intensity = 1.2;
+
+        // Background
+        const background = new BABYLON.Layer("background", null, scene);
+        background.texture = new BABYLON.Texture("https://i.imgur.com/2YatYaE.jpg", scene); // Replace with a dark cave image.
+
+        // Slot Machine Frame
+        const frame = BABYLON.MeshBuilder.CreateBox("frame", { width: 16, height: 10, depth: 1 }, scene);
+        frame.position.z = -2;
+        const frameMaterial = new BABYLON.StandardMaterial("frameMaterial", scene);
+        frameMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+        frameMaterial.emissiveColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+        frame.material = frameMaterial;
+
+        // Gems
+        const reels = [];
+        const gemColors = ["red", "orange", "yellow", "green", "blue", "purple"];
+
+        for (let i = 0; i < 5; i++) {
+            const reel = [];
+            for (let j = 0; j < 5; j++) {
+                const gem = BABYLON.MeshBuilder.CreateSphere(`gem${i}-${j}`, { diameter: 1 }, scene);
+                gem.position.x = -8 + i * 4; // Spacing between reels
+                gem.position.y = 4 - j * 2; // Spacing between gems
+
+                const gemMaterial = new BABYLON.StandardMaterial(`gemMaterial${i}-${j}`, scene);
+                const color = gemColors[Math.floor(Math.random() * gemColors.length)];
+                gemMaterial.diffuseColor = BABYLON.Color3[color.toUpperCase()];
+                gem.material = gemMaterial;
+
+                reel.push(gem);
+            }
+            reels.push(reel);
+        }
+
+        // Spin Button Logic
+        const spinButton = document.getElementById("spinButton");
+        const resultText = document.getElementById("resultText");
+
+        spinButton.addEventListener("click", () => {
+            resultText.textContent = "Spinning...";
+            spinButton.disabled = true;
+
+            reels.forEach((reel, index) => {
+                reel.forEach((gem, i) => {
+                    const animation = new BABYLON.Animation(
+                        `spin${index}-${i}`,
+                        "position.y",
+                        30,
+                        BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+                        BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
+                    );
+
+                    const keyFrames = [
+                        { frame: 0, value: gem.position.y },
+                        { frame: 15, value: gem.position.y - 10 },
+                        { frame: 30, value: gem.position.y },
+                    ];
+
+                    animation.setKeys(keyFrames);
+                    gem.animations = [];
+                    gem.animations.push(animation);
+
+                    scene.beginAnimation(gem, 0, 30, false);
+                });
+            });
+
+            setTimeout(() => {
+                resultText.textContent = "🎉 SPIN COMPLETE!";
+                spinButton.disabled = false;
+            }, 2000);
+        });
+
+        return scene;
+    };
+
+    const scene = createScene();
+    engine.runRenderLoop(() => {
+        scene.render();
+    });
+
+    window.addEventListener("resize", () => {
+        engine.resize();
+    });
+</script>
+</body>
+</html>

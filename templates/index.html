@@ -2,72 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blockchain Game</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <title>Sloty</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script> <!-- Web3.js -->
+
+    <script src="/static/js/script.js" defer></script>
 </head>
 <body>
-    <h1>Blockchain Game</h1>
-    
-    <button id="connectWallet">Connect Wallet</button>
-    <button id="playGame" disabled>Play Game</button>
-    
-    <h3>Transaction Status: <span id="status"></span></h3>
-    
-    <script>
-        let web3;
-        let account;
-        
-        // Connect to MetaMask and Web3
-        document.getElementById("connectWallet").addEventListener("click", async () => {
-            if (window.ethereum) {
-                web3 = new Web3(window.ethereum);
-                try {
-                    // Request wallet connection
-                    await window.ethereum.enable();
-                    const accounts = await web3.eth.getAccounts();
-                    account = accounts[0];
-                    document.getElementById("playGame").disabled = false;
-                    document.getElementById("status").textContent = "Wallet connected: " + account;
-                } catch (error) {
-                    document.getElementById("status").textContent = "Failed to connect to wallet";
-                }
-            } else {
-                document.getElementById("status").textContent = "Please install MetaMask";
-            }
-        });
 
-        // Play the game by sending a POST request to the Flask backend
-        document.getElementById("playGame").addEventListener("click", async () => {
-            // Display status
-            document.getElementById("status").textContent = "Sending transaction...";
+<div id="container">
+    <div class="window-border">
+        <div class="window">
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+            <div class="outer-col">
+                <div class="col"></div>
+            </div>
+            <div class="outer-spacer"></div>
+        </div>
+    </div>
 
-            // Build the transaction data (interaction with the contract)
-            const txData = await fetch('/build_transaction', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ from: account })
-            });
-            const txDataJson = await txData.json();
+    <input type="button" onclick="spin(this)" class="start-button" value="Spin"/>
+</div>
 
-            // Request the user to sign the transaction using MetaMask
-            try {
-                const txHash = await web3.eth.sendTransaction({
-                    from: account,
-                    to: txDataJson.to,
-                    data: txDataJson.data,
-                    gas: txDataJson.gas,
-                    gasPrice: txDataJson.gasPrice,
-                    value: txDataJson.value,
-                    nonce: txDataJson.nonce
-                });
-
-                // Update the status
-                document.getElementById("status").textContent = "Transaction Successful: " + txHash;
-            } catch (error) {
-                document.getElementById("status").textContent = "Transaction failed: " + error.message;
-            }
-        });
-    </script>
 </body>
 </html>
